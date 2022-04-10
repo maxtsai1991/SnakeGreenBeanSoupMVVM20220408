@@ -112,7 +112,7 @@ class SnakeMainActivity : AppCompatActivity() {
         // 觀察/監聽蛇的身體
         viewModel.body.observe(this, Observer {
             game_view.snakeBody = it
-            game_view.invalidate() // 重畫蛇身體
+            game_view.invalidate() // 畫出蛇身體
 
         })
 
@@ -134,7 +134,8 @@ class SnakeMainActivity : AppCompatActivity() {
 
         // 觀察/監聽小蘋果(小紅點)
         viewModel.apple.observe(this, Observer {
-
+            game_view.apple = it
+            game_view.invalidate() // 畫出蘋果
         })
 
         // 開始貪食蛇遊戲(畫出蛇的身體)
