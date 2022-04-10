@@ -1,6 +1,7 @@
 package com.example.snakegreenbeansoup20220408
 
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -78,6 +79,15 @@ import kotlinx.android.synthetic.main.content_snake_main.*
  *      8. 準備畫筆的顏色 , 因為後續還要對畫筆做其他事,所以用.applyEX : private val paint = Paint().apply { color = Color.BLACK }
  */
 
+/**
+ *   12-6 邊界的判斷程式設計
+ *      1. SnakeViewModel.kt )判斷蛇撞牆(畫面邊界)條件式 , 20代表畫面有20個格子 , x代表牆的左右 , y代表牆的上下 EX : if(x < 0 || x > 20 || y < 0 || y > 20) { }
+ *      2. 當撞牆後告知已經結束 , 創建一遊戲屬性,並且裡面裝列舉型態( 正在遊戲 , 遊戲結束 ) EX : val gameState = MutableLiveData<GameState>() ; 遊戲狀態列舉型態 : enum class GameState{ ONGOING , GAME_OVER }
+ *      3. 讓SnakeMainActivity監聽觀察遊戲狀態 , 當SnakeViewModel的遊戲狀態改變值時 EX : (SnakeViewModel)gameState.postValue(GameState.GAME_OVER) , 要用postValue方法,而不是Value方法  ; (SnakeMainActivity) viewModel.gameState.observe(this, Observer { })
+ *      4. 增加遊戲結束的彈窗 EX :  AlertDialog.Builder(this@SnakeMainActivity) .setTitle("貪食蛇遊戲(SnakeGame)").setMessage("遊戲結束(Game Over)").setPositiveButton("OK" , null).show()
+ *      5. SnakeMainActivity )增加上下左右按鈕的監聽器 EX :  top.setOnClickListener { viewModel.move(Direction.TOP) } ... 等等
+ */
+
 class SnakeMainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -111,6 +121,17 @@ class SnakeMainActivity : AppCompatActivity() {
 
         })
 
+        //  觀察/監聽遊戲狀態 , 當蛇撞到四邊牆(上下左右)時,跳出對話框
+        viewModel.gameState.observe(this, Observer { gameState ->
+            if(gameState == GameState.GAME_OVER){
+                AlertDialog.Builder(this@SnakeMainActivity)
+                    .setTitle("貪食蛇遊戲(SnakeGame)")
+                    .setMessage("遊戲結束(Game Over)")
+                    .setPositiveButton("OK" , null)
+                    .show()
+            }
+        })
+
         // 觀察/監聽小蘋果(小紅點)
         viewModel.apple.observe(this, Observer {
 
@@ -118,6 +139,12 @@ class SnakeMainActivity : AppCompatActivity() {
 
         // 開始貪食蛇遊戲(畫出蛇的身體)
         viewModel.start()
+
+        // 上下左右按鈕的監聽器
+        top.setOnClickListener { viewModel.move(Direction.TOP) }
+        down.setOnClickListener { viewModel.move(Direction.DOWN) }
+        left.setOnClickListener { viewModel.move(Direction.LEFT) }
+        right.setOnClickListener { viewModel.move(Direction.RIGHT) }
     }
 
 

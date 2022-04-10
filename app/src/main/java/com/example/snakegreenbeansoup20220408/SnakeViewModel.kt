@@ -18,6 +18,7 @@ class SnakeViewModel : ViewModel(){
     val body = MutableLiveData<List<Position>>()      // 蛇的身體
     val apple = MutableLiveData<Position>()           // 小蘋果
     val score = MutableLiveData<Int>()                // 分數
+    val gameState = MutableLiveData<GameState>()      // 遊戲狀態( 正在遊戲 , 遊戲結束 )
     private val snakeBody = mutableListOf<Position>() // 蛇的身體區塊
     private var direction = Direction.LEFT            // 預設蛇移動的方向(向左)
     // 開始遊戲
@@ -33,7 +34,7 @@ class SnakeViewModel : ViewModel(){
         }
 
         // FixedRateTimer 定時速率 (速率計時器) , fixedRateTimer("自定義名字",是不是daemon類型的,第一次啟動要停多久啟動(單位毫秒),重複動作時間(單位毫秒,時間越長,蛇動的越慢))
-        fixedRateTimer("timer",true,500,1000){
+        fixedRateTimer("timer",true,500,500){
             // 找下一個位置動作程式碼
             val pos = snakeBody.first().copy().apply {
                 when(direction){             // 蛇移動方向
@@ -42,6 +43,12 @@ class SnakeViewModel : ViewModel(){
                     Direction.TOP -> y--     // 向上
                     Direction.DOWN -> y++    // 向下
                 }
+                // 判斷蛇撞牆(畫面邊界)條件式 , 20代表畫面有20個格子 , x代表牆的左右 , y代表牆的上下
+                if(x < 0 || x > 20 || y < 0 || y > 20) {
+                    cancel() // 當撞到邊界後停止(取消)動作 , fixedRateTimer身上的一個停止方法
+                    gameState.postValue(GameState.GAME_OVER)
+                }
+
             }
             // 蛇移動的反覆動作(蛇移動動畫)程式碼 (加蛇最前面的身體(左),移除最後面的身體(右))
             snakeBody.add(0, pos) // 增加身體
@@ -57,7 +64,7 @@ class SnakeViewModel : ViewModel(){
 
     // 蛇移動
     fun move(dir: Direction) {
-
+        direction = dir
     }
 }
 
@@ -67,4 +74,9 @@ data class Position(var x : Int , var y : Int)
 // 上下左右移動列舉 , Direction(方向)
 enum class Direction {
     TOP , DOWN , LEFT , RIGHT
+}
+
+// 遊戲的狀態 ( 正在遊戲 , 遊戲結束 )
+enum class GameState{
+    ONGOING , GAME_OVER
 }
