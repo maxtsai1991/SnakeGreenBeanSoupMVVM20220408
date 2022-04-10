@@ -118,7 +118,7 @@ class SnakeMainActivity : AppCompatActivity() {
 
         // 觀察/監聽身上的分數
         viewModel.score.observe(this, Observer {
-
+            score.setText(it.toString())
         })
 
         //  觀察/監聽遊戲狀態 , 當蛇撞到四邊牆(上下左右)時,跳出對話框

@@ -27,17 +27,33 @@ import kotlin.random.Random
  * 5.   SnakeViewModel.kt ) 實作蘋果是否增加蛇身體的程式設計 EX :  if ( pos != applePos ) { snakeBody.removeLast() } else {  generateApple()  }
  */
 
+/**
+ * 12-8 重完與計分,完成貪食蛇遊戲
+ * 1.   SnakeViewModel ) 當吃到一蘋果增加100分數及添加分數屬性 EX : private var point: Int = 0 ; if ( pos != applePos ) { snakeBody.removeLast() } else { point += 100 ; score.postValue(point) ; generateApple() }
+ * 2.   SnakeMainActivity ) 觀察監聽分數實作 EX : viewModel.score.observe(this, Observer {  score.setText(it.toString()) })
+ * 3.   做一個畫面的邊界 : drwable > New > Drawable Resuource File > 命名border.xml , 添加下面標籤 , 並在content_snake_main.xml 的view元件的背景(background),修改成border.xml
+ *        <shape xmlns:android="http://schemas.android.com/apk/res/android">
+ *           <solid android:color="#19494746"/>
+ *           <stroke android:width="2dp"/>
+ *       </shape>
+ * 4.  SnakeViewModel ) 當撞到蛇自己身體也會結束遊戲 EX : snakeBody.contains(this)
+ */
+
 class SnakeViewModel : ViewModel(){
-    private lateinit var applePos: Position           // 蘋果座標(亂數)
+
     val body = MutableLiveData<List<Position>>()      // 蛇的身體
     val apple = MutableLiveData<Position>()           // 小蘋果
     val score = MutableLiveData<Int>()                // 分數
     val gameState = MutableLiveData<GameState>()      // 遊戲狀態( 正在遊戲 , 遊戲結束 )
     private val snakeBody = mutableListOf<Position>() // 蛇的身體區塊
     private var direction = Direction.LEFT            // 預設蛇移動的方向(向左)
+    private lateinit var applePos: Position           // 蘋果座標(亂數)
+    private var point: Int = 0                        // 右上角分數
 
     // 開始遊戲
     fun start() {
+        // 起始畫面分數為0
+        score.postValue(point)
         // 畫出蛇的身體區塊(snakeBody) , 假設日後還要對蛇的身體做其他事情,及使用.apply方法
         snakeBody.apply {
             add(Position(10 , 10))  // 將蛇身體區塊初始位置放在畫面中間處,蛇一開始身體區塊為橫向4格,
@@ -61,8 +77,8 @@ class SnakeViewModel : ViewModel(){
                     Direction.TOP -> y--     // 向上
                     Direction.DOWN -> y++    // 向下
                 }
-                // 判斷蛇撞牆(畫面邊界)條件式 , 20代表畫面有20個格子 , x代表牆的左右 , y代表牆的上下
-                if(x < 0 || x >= 20 || y < 0 || y >= 20) {
+                // 判斷蛇撞牆(畫面邊界)條件式 , 20代表畫面有20個格子 , x代表牆的左右 , y代表牆的上下 , 當撞到蛇自己身體也會結束遊戲
+                if(snakeBody.contains(this) || x < 0 || x >= 20 || y < 0 || y >= 20) {
                     cancel() // 當撞到邊界後停止(取消)動作 , fixedRateTimer身上的一個停止方法
                     gameState.postValue(GameState.GAME_OVER)
                 }
@@ -73,6 +89,8 @@ class SnakeViewModel : ViewModel(){
             if ( pos != applePos ) {        // pos 有無等於蘋果位置
                 snakeBody.removeLast()      // 移掉身體
             } else {
+                point += 100                // 當吃到一蘋果增加100分數 , 100數字可自定義
+                score.postValue(point)
                 generateApple()             // 產生下一個位置蘋果
             }
             body.postValue(snakeBody)   // 更動LiveData的Value值 , 這行沒寫 , 蛇不會移動
@@ -81,7 +99,22 @@ class SnakeViewModel : ViewModel(){
 
     // 產生亂數隨機位置的蘋果
     fun generateApple(){
-        applePos = Position(Random.nextInt(20), Random.nextInt(20)) // 亂數產生蘋果座標,0~19範圍
+        // 寫法一 : do..while語法(至少會執行一次)
+        do{
+            applePos = Position(Random.nextInt(20), Random.nextInt(20)) // 亂數產生蘋果座標,0~19範圍
+        } while (snakeBody.contains(applePos)) // 判斷這顆蘋果是否有重疊到蛇的身體上
+
+    //        // 寫法二 :
+    //        val spots = mutableListOf<Position>().apply {
+    //            for (i in 0..19){
+    //                for (j in 0..19){
+    //                    add(Position(i , j))
+    //                }
+    //            }
+    //        }
+    //        spots.removeAll(snakeBody)
+    //        spots.shuffle()
+    //        applePos = spots[0]
         apple.postValue(applePos) // 在執行緒裡面盡量用postValue
     }
 
