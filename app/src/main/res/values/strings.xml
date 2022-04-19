@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">SnakeGreenBeanSoup20220408</string>
-    <string name="title_activity_snake_main">SnakeMainActivity</string>
+    <string name="app_name">貪食蛇</string>
+    <string name="title_activity_snake_main">貪食蛇</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
